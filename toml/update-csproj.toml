@@ -1,0 +1,9 @@
+[1-Swap-Moq-For-NSubstitute]
+
+match='<PackageReference Include="Moq" Version=":[version]" />'
+rewrite='<PackageReference Include="NSubstitute" Version="5.1.0" />'
+
+[2-Update-Castle-Core]
+
+match='Include="Castle.Core" Version=":[version]"'
+rewrite='Include="Castle.Core" Version="5.1.1"'

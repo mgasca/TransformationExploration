@@ -1,0 +1,70 @@
+[01-rewrite-namespaces]
+match='using Moq;'
+rewrite='using NSubstitute;'
+
+# Mock creation and access
+[02-rewrite-static-instantiation]
+match='Mock.Of'
+rewrite='Substitute.For'
+[03-rewrite-new-instantiation]
+match='new Mock<:[type]>(:[parms])'
+rewrite='Substitute.For<:[type]>(:[parms])'
+# would be for declarations, but seems var is used everywhere here
+[04-rewrite-declaration]
+match= 'Mock<:[type]> :[name] ='
+rewrite=':[type] :[name] ='
+[05-rewrite-mock-access]
+match=':[[mock]].Object'
+rewrite=':[[mock]]'
+# deal with mocking func factories, moq defaults to new every time, not nsub.
+# so also need to fix this up
+[06-rewrite-func-factory]
+match='Func<:[[type]]> :[[name]] = Substitute.For<:[[type]]>'
+rewrite='''Func<:[[type]]> :[[name]] = Substitute.For<Func<:[[type]]>>();
+:[[name]]().Returns(Substitute.For<:[[type]]>());'''
+
+# Mock setup
+[07-rewrite-setup-callback]
+match=':[[var]].Setup(:[arg] => :[arg].:[method](:[mparm])).Callback<:[cType]>(:[x] => :[pre]:[x].:[post]);'
+rewrite=':[[var]].When(:[arg] => :[arg].:[method](:[mparm])).Do(:[x] => :[pre]:[x].Arg<:[cType]>().:[post]);'
+[08-rewrite-setup-throws]
+match=':[[var]].Setup(:[action]).Throws'
+rewrite=':[[var]].When(:[action]).Throw'
+[09-rewrite-default-setup]
+match=':[[var]].Setup(:[arg] => :[arg].:[method](:[mparm]))'
+rewrite=':[[var]].:[method](:[mparm])'
+[10-rewrite-setupget]
+match=':[[var]].SetupGet(:[arg] => :[arg].:[prop])'
+rewrite=':[[var]].:[prop]'
+
+# Verification
+[11-rewrite-verify-once]
+match=':[[var]].Verify(:[a] => :[a].:[method](:[args]), Times.Once)'
+rewrite=':[[var]].Received().:[method](:[args])'
+[12-rewrite-verify-exactly]
+match=':[[var]].Verify(:[a] => :[a].:[method](:[args]), Times.Exactly(:[times]))'
+rewrite=':[[var]].Received(:[times]).:[method](:[args])'
+[13-rewrite-default-verify]
+match=':[[var]].Verify(:[a] => :[a].:[method](:[args]))'
+rewrite=':[[var]].Received().:[method](:[args])'
+
+# Argument matchers, must be run in this order
+[14-rewrite-it-isregex]
+match='It.IsRegex(:[regex])'
+rewrite='Arg.Is<string>(i => Regex.IsMatch(i, :[regex]))'
+[15-rewrite-it-any]
+match='It.IsAny'
+rewrite='Arg.Any'
+[16-rewrite-it-is]
+match='It.Is'
+rewrite='Arg.Is'
+[17-rewrite-add-regex-using]
+match=':[[preamble]] Arg.Is<string>(i => Regex.IsMatch(i, :[regex])) :[[postamble]]'
+rewrite='''
+using System.Text.RegularExpressions;
+:[[preamble]] Arg.Is<string>(i => Regex.IsMatch(i, :[regex])) :[[postamble]]
+'''
+rule='''where match :[preamble] {
+| ":[_~.*using System.Text.RegularExpressions;.*]" -> false
+| ":[_]" -> true
+}'''

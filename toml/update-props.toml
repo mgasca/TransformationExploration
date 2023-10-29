@@ -1,0 +1,4 @@
+[Remove-Framework-Versions]
+
+match='<TestTargetFrameworks>net7.0;net48;net40</TestTargetFrameworks>'
+rewrite='<TestTargetFrameworks>net7.0;net48</TestTargetFrameworks>'

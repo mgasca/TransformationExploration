@@ -1,0 +1,6 @@
+[a]
+match="... comby -matcher .cs -i ... ':[match]' ... ':[rewrite]' .Build.props ..."
+rewrite="""
+[Update-build-props]
+match=':[match]'
+rewrite=':[rewrite]'"""
