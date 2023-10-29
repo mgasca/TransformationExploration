@@ -63,6 +63,7 @@ All the examples take a public github repository that uses Moq (which should not
 
 ```
 git clone https://github.com/DevTeam/IoCContainer.git
+cd IoCContainer
 sed -i 's/net7.0;net48;net40/net7.0/g' Directory.Build.props
 dotnet build IoC.sln
 dotnet test IoC.Tests/IoC.Tests.csproj
